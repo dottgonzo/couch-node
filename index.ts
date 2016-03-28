@@ -16,7 +16,6 @@ function find(_id: string, couchdb: string) {
 
 }
 
-
 function update(obj, couchdb: string) {
 
     return new Promise<boolean>(function(resolve, reject) {
