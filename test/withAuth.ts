@@ -5,7 +5,7 @@ let spawnPouchdbServer = require('spawn-pouchdb-server');
 
 let expect = chai.expect;
 
-let tmPort = 3434;
+let tmPort = 3435;
 
 let couchDBDatabase = "http://localhost:" + tmPort + "/" + new Date().getTime;
 
@@ -18,6 +18,7 @@ before(function (done) {
             port: tmPort,
             backend: false,
             config: {
+                admins: { "adminuser": "adminpass" },
                 file: false
             },
             log: {
@@ -30,16 +31,16 @@ before(function (done) {
 
             } else {
 
-            CouchManager = new CouchNode(couchDBDatabase);
+                CouchManager = new CouchNode(couchDBDatabase, { user: "adminuser", password: "adminpass" });
 
-            done();
+                done();
 
             }
         })
 
 });
 
-describe("db testing", function () {
+describe("db testing with auth", function () {
     it("create db", function (done) {
         CouchManager.createDB().then((d) => {
 

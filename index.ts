@@ -1,32 +1,57 @@
 import * as Promise from "bluebird";
 
-let rpj = require("request-promise-json");
+import * as superagent from "superagent";
 
-function find(_id: string, couchdb: string) {
+interface IAuth {
+    user: string;
+    password: string;
+}
 
-    return new Promise(function(resolve, reject) {
 
-        rpj.get(couchdb + "/" + _id).then(function(obj) {
-            resolve(obj);
-        }).catch(function(err) {
-            reject(err);
-        })
+
+
+
+function find(_id: string, couchdb: string, auth?: IAuth) {
+
+    return new Promise(function (resolve, reject) {
+
+
+
+        if (auth) {
+            superagent.get(couchdb + "/" + _id).auth(auth.user, auth.password).end((err, res) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(res.body);
+                }
+            })
+        } else {
+            superagent.get(couchdb + "/" + _id).end((err, res) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(res.body);
+                }
+            })
+        }
+
+
 
     })
 
 }
 
-function update(obj, couchdb: string) {
+function update(obj, couchdb: string, auth?: IAuth) {
 
-    return new Promise<boolean>(function(resolve, reject) {
+    return new Promise<boolean>(function (resolve, reject) {
 
-        find(obj._id, couchdb).then(function(o: any) {
+        find(obj._id, couchdb, auth).then(function (o: any) {
 
             obj._rev = o._rev;
 
-            create(obj, couchdb).then(function() {
+            create(obj, couchdb, auth).then(function () {
                 resolve(true);
-            }).catch(function(err) {
+            }).catch(function (err) {
                 reject(err);
             })
 
@@ -36,51 +61,95 @@ function update(obj, couchdb: string) {
 
 }
 
-function create(obj, couchdb: string) {
+function create(obj, couchdb: string, auth?: IAuth) {
 
-    return new Promise<boolean>(function(resolve, reject) {
+    return new Promise<boolean>(function (resolve, reject) {
 
-        rpj.put(couchdb + "/" + obj._id, event).then(function() {
-            resolve(true);
-        }).catch(function(err) {
-            reject(err);
-        })
+        if (auth) {
+            superagent.put(couchdb + "/" + obj._id).set('Content-Type', 'application/json').send(JSON.stringify(obj)).auth(auth.user, auth.password).end((err, res) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(res.body);
+                }
+            })
+        } else {
+            superagent.put(couchdb + "/" + obj._id).set('Content-Type', 'application/json').send(JSON.stringify(obj)).end((err, res) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(res.body);
+                }
+            })
+        }
 
     })
 
 }
 
 
-class CouchManager {
+export default class {
 
     couchdb: string;
+    auth: IAuth;
 
-    constructor(couch: string) {
+    constructor(couch: string, auth?: IAuth) {
 
         this.couchdb = couch;
-
+        if (auth) this.auth = auth;
 
     }
 
 
 
     createDB() {
-        let db = this.couchdb;
-        rpj.get(db).catch(function(err) {
-            if (err.statusCode === 404) {
-                rpj.put(db).then(function() {
-                    console.log("new DB " + db.split("/")[db.split("/").length - 1]);
-                }).catch(function(err) {
-                    throw Error(err)
+        const _this = this
+        return new Promise<boolean>(function (resolve, reject) {
+
+
+
+            if (_this.auth) {
+                superagent.get(_this.couchdb).auth(_this.auth.user, _this.auth.password).end((err, res) => {
+                    if (err) {
+                        if (err.status === 404) {
+                            superagent.put(_this.couchdb).auth(_this.auth.user, _this.auth.password).end((err, res) => {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve(res.body);
+                                }
+                            })
+
+                        } else {
+                            reject(err);
+                        }
+                    } else {
+                        resolve(res.body);
+                    }
                 })
             } else {
-                throw Error(err)
+                superagent.get(_this.couchdb).end((err, res) => {
+                    if (err) {
+                        if (err.status === 404) {
+                            superagent.put(_this.couchdb).end((err, res) => {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve(res.body);
+                                }
+                            })
+
+                        } else {
+                            reject(err);
+                        }
+                    } else {
+                        resolve(res.body);
+                    }
+                })
             }
-
         })
-
     }
-    create(obj) {
+    create(obj:{any}) {
         return create(obj, this.couchdb);
     }
 
@@ -95,4 +164,4 @@ class CouchManager {
 }
 
 
-export = CouchManager
+
