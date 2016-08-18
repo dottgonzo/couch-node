@@ -9,7 +9,7 @@ interface IAuth {
 
 
 
-export default class {
+export default class couchNode {
 
     couchdb: string;
     auth: IAuth;
