@@ -9,85 +9,6 @@ interface IAuth {
 
 
 
-
-
-function find(_id: string, couchdb: string, auth?: IAuth) {
-
-    return new Promise(function (resolve, reject) {
-
-
-
-        if (auth) {
-            superagent.get(couchdb + "/" + _id).auth(auth.user, auth.password).end((err, res) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(res.body);
-                }
-            })
-        } else {
-            superagent.get(couchdb + "/" + _id).end((err, res) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(res.body);
-                }
-            })
-        }
-
-
-
-    })
-
-}
-
-function update(obj, couchdb: string, auth?: IAuth) {
-
-    return new Promise<boolean>(function (resolve, reject) {
-
-        find(obj._id, couchdb, auth).then(function (o: any) {
-
-            obj._rev = o._rev;
-
-            create(obj, couchdb, auth).then(function () {
-                resolve(true);
-            }).catch(function (err) {
-                reject(err);
-            })
-
-        })
-
-    })
-
-}
-
-function create(obj, couchdb: string, auth?: IAuth) {
-
-    return new Promise<boolean>(function (resolve, reject) {
-
-        if (auth) {
-            superagent.put(couchdb + "/" + obj._id).set('Content-Type', 'application/json').send(JSON.stringify(obj)).auth(auth.user, auth.password).end((err, res) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(res.body);
-                }
-            })
-        } else {
-            superagent.put(couchdb + "/" + obj._id).set('Content-Type', 'application/json').send(JSON.stringify(obj)).end((err, res) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(res.body);
-                }
-            })
-        }
-
-    })
-
-}
-
-
 export default class {
 
     couchdb: string;
@@ -102,7 +23,7 @@ export default class {
 
 
 
-    createDB() {
+    createDB(): Promise<boolean> {
         const _this = this
         return new Promise<boolean>(function (resolve, reject) {
 
@@ -149,16 +70,86 @@ export default class {
             }
         })
     }
-    create(obj:{any}) {
-        return create(obj, this.couchdb);
+    create(obj: any): Promise<boolean> {
+        const _this = this;
+        return new Promise<boolean>(function (resolve, reject) {
+
+            if (_this.auth) {
+                superagent.put(_this.couchdb + "/" + obj._id).set('Content-Type', 'application/json').send(JSON.stringify(obj)).auth(_this.auth.user, _this.auth.password).end((err, res) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(res.body);
+                    }
+                })
+            } else {
+                superagent.put(_this.couchdb + "/" + obj._id).set('Content-Type', 'application/json').send(JSON.stringify(obj)).end((err, res) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(res.body);
+                    }
+                })
+            }
+
+        })
+
+
+
     }
 
-    update(obj) {
-        return update(obj, this.couchdb);
+    update(obj): Promise<boolean> {
+
+        const _this = this;
+
+        return new Promise<boolean>(function (resolve, reject) {
+
+            _this.find(obj._id).then(function (o: any) {
+
+                obj._rev = o._rev;
+
+                _this.create(obj).then(function () {
+                    resolve(true);
+                }).catch(function (err) {
+                    reject(err);
+                })
+
+            })
+
+        })
+
+
     }
 
     find(_id) {
-        return find(_id, this.couchdb);
+        const _this = this;
+
+        return new Promise(function (resolve, reject) {
+
+
+
+            if (_this.auth) {
+                superagent.get(_this.couchdb + "/" + _id).auth(_this.auth.user, _this.auth.password).end((err, res) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(res.body);
+                    }
+                })
+            } else {
+                superagent.get(_this.couchdb + "/" + _id).end((err, res) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(res.body);
+                    }
+                })
+            }
+
+
+
+        })
+
     }
 
 }
