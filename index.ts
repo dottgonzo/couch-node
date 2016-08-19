@@ -12,7 +12,7 @@ interface IAuth {
 export default class couchNode {
 
     couchdb: string;
-    auth: IAuth;
+    auth: IAuth; // to be removed for private credentials
 
     constructor(couch: string, auth?: IAuth) {
 
@@ -175,7 +175,7 @@ export default class couchNode {
         })
     }
 
-    finder(params: string): Promise<any[]> {
+    finder(params: string, notIncludeDocs?: boolean): Promise<any[]> {
         const _this = this;
 
         return new Promise<any[]>((resolve, reject) => {
@@ -183,6 +183,11 @@ export default class couchNode {
             if (params[0] !== '?') {
                 reject('params must starts with?')
             } else {
+                if (params.split('include_docs').length < 2) {
+                    if (!notIncludeDocs) params = params + '&include_docs=true'
+                }
+
+
                 if (_this.auth) {
                     superagent.get(_this.couchdb + "/_all_docs" + params).auth(_this.auth.user, _this.auth.password).end((err, res) => {
                         if (err) {
@@ -205,7 +210,22 @@ export default class couchNode {
         })
     }
 
+    betweenKeys(start, stop, notIncludeDocs?: boolean): Promise<any[]> {
+        const _this = this;
 
+        return new Promise<any[]>((resolve, reject) => {
+
+            const params = '?startKey=' + start + '&endKey=' + stop;
+
+            _this.finder(params, notIncludeDocs).then((a) => {
+                resolve(a)
+            }).catch((err) => {
+                reject(err)
+            })
+
+        })
+
+    }
 
 }
 
