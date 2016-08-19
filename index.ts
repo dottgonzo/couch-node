@@ -25,7 +25,7 @@ export default class couchNode {
 
     createDB(): Promise<boolean> {
         const _this = this
-        return new Promise<boolean>(function (resolve, reject) {
+        return new Promise<boolean>((resolve, reject) => {
 
 
 
@@ -72,7 +72,7 @@ export default class couchNode {
     }
     create(obj: any): Promise<boolean> {
         const _this = this;
-        return new Promise<boolean>(function (resolve, reject) {
+        return new Promise<boolean>((resolve, reject) => {
 
             if (_this.auth) {
                 superagent.put(_this.couchdb + "/" + obj._id).set('Content-Type', 'application/json').send(JSON.stringify(obj)).auth(_this.auth.user, _this.auth.password).end((err, res) => {
@@ -102,7 +102,7 @@ export default class couchNode {
 
         const _this = this;
 
-        return new Promise<boolean>(function (resolve, reject) {
+        return new Promise<boolean>((resolve, reject) => {
 
             _this.find(obj._id).then(function (o: any) {
 
@@ -121,10 +121,10 @@ export default class couchNode {
 
     }
 
-    find(_id) {
+    find(_id): Promise<any> {
         const _this = this;
 
-        return new Promise(function (resolve, reject) {
+        return new Promise<any>((resolve, reject) => {
 
 
 
@@ -151,6 +151,61 @@ export default class couchNode {
         })
 
     }
+
+
+    delete(id: string): Promise<boolean> {
+        const _this = this;
+
+        return new Promise<boolean>((resolve, reject) => {
+
+            _this.find(id).then((a) => {
+
+                a.delete = true;
+
+                _this.update(a).then(() => {
+                    resolve(true)
+                }).catch((err) => {
+                    reject(err)
+                })
+            }).catch((err) => {
+                reject(err)
+            })
+
+
+        })
+    }
+
+    finder(params: string): Promise<any[]> {
+        const _this = this;
+
+        return new Promise<any[]>((resolve, reject) => {
+
+            if (params[0] !== '?') {
+                reject('params must starts with?')
+            } else {
+                if (_this.auth) {
+                    superagent.get(_this.couchdb + "/_all_docs" + params).auth(_this.auth.user, _this.auth.password).end((err, res) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(res.body);
+                        }
+                    })
+                } else {
+                    superagent.get(_this.couchdb + "/_all_docs" + params).end((err, res) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(res.body);
+                        }
+                    })
+                }
+            }
+
+        })
+    }
+
+
 
 }
 
