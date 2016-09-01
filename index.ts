@@ -121,7 +121,7 @@ export default class couchNode {
 
     }
 
-    find(_id): Promise<any> {
+    find(_id:string,_rev?:string): Promise<any> {
         const _this = this;
 
         return new Promise<any>((resolve, reject) => {
