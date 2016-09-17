@@ -1,5 +1,4 @@
 import * as Promise from "bluebird";
-
 import * as superagent from "superagent";
 
 interface IAuth {
@@ -70,16 +69,16 @@ export default class couchNode {
             }
         })
     }
-    create(obj: any): Promise<boolean> {
+    create(obj: any): Promise<any> {
         const _this = this;
-        return new Promise<boolean>((resolve, reject) => {
-
+        return new Promise<any>((resolve, reject) => {
             if (_this.auth) {
                 superagent.put(_this.couchdb + "/" + obj._id).set('Content-Type', 'application/json').send(JSON.stringify(obj)).auth(_this.auth.user, _this.auth.password).end((err, res) => {
                     if (err) {
                         reject(err);
                     } else {
-                        resolve(res.body);
+                        obj._rev=JSON.parse(res.text).rev;
+                        resolve(obj);
                     }
                 })
             } else {
@@ -87,8 +86,8 @@ export default class couchNode {
                     if (err) {
                         reject(err);
                     } else {
-                        resolve(res.body);
-                    }
+                        obj._rev=JSON.parse(res.text).rev;
+                        resolve(obj);                    }
                 })
             }
 
@@ -98,18 +97,16 @@ export default class couchNode {
 
     }
 
-    update(obj): Promise<boolean> {
+    update(obj): Promise<any> {
 
         const _this = this;
 
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise((resolve, reject) => {
 
             _this.find(obj._id).then(function (o: any) {
-
                 obj._rev = o._rev;
-
-                _this.create(obj).then(function () {
-                    resolve(true);
+                _this.create(obj).then(function (c: any) {
+                    resolve(obj);
                 }).catch(function (err) {
                     reject(err);
                 })
@@ -121,27 +118,27 @@ export default class couchNode {
 
     }
 
-    find(_id:string,_rev?:string): Promise<any> {
+    find(_id: string, _rev?: string): Promise<any> {
         const _this = this;
 
         return new Promise<any>((resolve, reject) => {
 
-
-
             if (_this.auth) {
-                superagent.get(_this.couchdb + "/" + _id).auth(_this.auth.user, _this.auth.password).end((err, res) => {
+                superagent.get(_this.couchdb + "/" + _id).set('Content-Type', 'application/json').auth(_this.auth.user, _this.auth.password).end((err, res) => {
                     if (err) {
                         reject(err);
                     } else {
-                        resolve(res.body);
+                        resolve(JSON.parse(res.text));
                     }
                 })
             } else {
-                superagent.get(_this.couchdb + "/" + _id).end((err, res) => {
+                superagent.get(_this.couchdb + "/" + _id).set('Content-Type', 'application/json').end((err, res) => {
                     if (err) {
                         reject(err);
                     } else {
-                        resolve(res.body);
+
+
+                        resolve(JSON.parse(res.text));
                     }
                 })
             }
@@ -160,7 +157,7 @@ export default class couchNode {
 
             _this.find(id).then((a) => {
 
-                a.delete = true;
+                a._deleted = true;
 
                 _this.update(a).then(() => {
                     resolve(true)
@@ -175,7 +172,7 @@ export default class couchNode {
         })
     }
 
-    finder(params: string, notIncludeDocs?: boolean): Promise<any[]> {
+    finder(params: string, options?: { notIncludeDocs?: boolean }): Promise<any[]> {
         const _this = this;
 
         return new Promise<any[]>((resolve, reject) => {
@@ -184,7 +181,7 @@ export default class couchNode {
                 reject('params must starts with?')
             } else {
                 if (params.split('include_docs').length < 2) {
-                    if (!notIncludeDocs) params = params + '&include_docs=true'
+                    if (!options.notIncludeDocs) params = params + '&include_docs=true'
                 }
 
 
@@ -210,14 +207,14 @@ export default class couchNode {
         })
     }
 
-    betweenKeys(start, stop, notIncludeDocs?: boolean): Promise<any[]> {
+    betweenKeys(start, stop, options?: { notIncludeDocs?: boolean }): Promise<any[]> {
         const _this = this;
 
         return new Promise<any[]>((resolve, reject) => {
 
             const params = '?startKey=' + start + '&endKey=' + stop;
 
-            _this.finder(params, notIncludeDocs).then((a) => {
+            _this.finder(params, options.notIncludeDocs).then((a) => {
                 resolve(a)
             }).catch((err) => {
                 reject(err)

@@ -41,6 +41,7 @@ before(function (done) {
 });
 
 describe("db testing with auth", function () {
+    let o;
     it("create db", function (done) {
         CouchManager.createDB().then((d) => {
 
@@ -58,8 +59,9 @@ describe("db testing with auth", function () {
         CouchManager.create({
             _id: 'ff'
         }).then((d) => {
-
             expect(d).to.be.ok;
+            expect(d).to.be.an("Object").to.have.property("_id");
+            expect(d).to.have.property("_rev");
             done();
 
         }).catch((err) => {
@@ -71,6 +73,9 @@ describe("db testing with auth", function () {
     });
     it("find a document", function (done) {
         CouchManager.find('ff').then((d) => {
+            o = d;
+            expect(d).to.be.an("Object").to.have.property("_id");
+            expect(d).to.have.property("_rev");
 
             expect(d).to.be.ok;
             done();
@@ -82,6 +87,44 @@ describe("db testing with auth", function () {
 
 
     });
-    // write tests about multiple values (2 ip or 2 gateway for the same interface)
+
+
+    it("update a document", function (done) {
+        o.up = "updated";
+        CouchManager.update(o).then((d) => {
+            expect(d).to.be.ok;
+            expect(d).to.be.an("Object").to.have.property("up");
+            expect(d).to.have.property("_id");
+            expect(d).to.have.property("_rev");
+            expect(d.up).to.be.eq("updated");
+            done();
+
+        }).catch((err) => {
+            done(Error(err))
+        })
+
+    });
+
+    it("delete a document", function (done) {
+        CouchManager.delete('ff').then(() => {
+
+            CouchManager.find('ff').then((d) => {
+                done(Error("ff still exists"))
+
+
+            }).catch(() => {
+                done()
+            })
+
+
+        }).catch((err) => {
+            done(Error(err))
+        })
+
+
+
+    });
+
+
 
 })
