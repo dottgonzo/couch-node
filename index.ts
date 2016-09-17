@@ -319,7 +319,7 @@ export default class couchNode {
 
         return new Promise<any[]>((resolve, reject) => {
 
-            const params = '?startKey=' + start + '&endKey=' + stop;
+            const params = '?startkey=' + start + '&endkey=' + stop;
 
             _this.finder(params, options).then((a) => {
                 resolve(a)
