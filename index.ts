@@ -70,6 +70,28 @@ export default class couchNode {
             }
         })
     }
+    /*
+        createDBS(dbs: string[]): Promise<boolean> {
+            const _this = this;
+            return new Promise<boolean>((resolve, reject) => {
+                async.eachSeries(dbs, (db, cb) => {
+                    _this.create(db).then(() => {
+                        cb()
+                    }).catch((err) => {
+                        cb(err)
+                    })
+                }, (err) => {
+                    if (err) {
+                        reject(err)
+                    } else {
+                        resolve(true)
+                    }
+                })
+            })
+        }
+    */
+
+
     create(obj: any): Promise<any> {
         const _this = this;
         return new Promise<any>((resolve, reject) => {

@@ -1,13 +1,13 @@
 import CouchNode from '../index';
-import chai = require("chai");
+import * as chai from "chai";
 
-let spawnPouchdbServer = require('spawn-pouchdb-server');
+const spawnPouchdbServer = require('spawn-pouchdb-server');
 
-let expect = chai.expect;
+const expect = chai.expect;
 
-let tmPort = 3434;
+const tmPort = 3434;
 
-let couchDBDatabase = "http://localhost:" + tmPort + "/" + new Date().getTime;
+const couchDBDatabase = "http://localhost:" + tmPort + "/" + new Date().getTime;
 
 let CouchManager;
 
@@ -54,6 +54,7 @@ describe("db testing", function () {
 
 
     });
+    
     it("create a document", function (done) {
         CouchManager.create({
             _id: 'ff'
