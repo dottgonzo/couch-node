@@ -319,7 +319,7 @@ export default class couchNode {
 
         return new Promise<any[]>((resolve, reject) => {
 
-            const params = '?startkey=' + start + '&endkey=' + stop;
+            const params = '?startkey="' + start + '"&endkey="' + stop+'"';
 
             _this.finder(params, options).then((a) => {
                 resolve(a)
@@ -330,7 +330,38 @@ export default class couchNode {
         })
 
     }
+    betweenIDKeys(start, stop, options?: { notIncludeDocs?: boolean }): Promise<any[]> {
+        const _this = this;
 
+        return new Promise<any[]>((resolve, reject) => {
+
+            const params = '?startkey_docid="' + start + '"&endkey_docid="' + stop+'"';
+
+            _this.finder(params, options).then((a) => {
+                resolve(a)
+            }).catch((err) => {
+                reject(err)
+            })
+
+        })
+
+    }
+        startID(start, options?: { notIncludeDocs?: boolean }): Promise<any[]> {
+        const _this = this;
+
+        return new Promise<any[]>((resolve, reject) => {
+
+            const params = '?startkey_docid="' + start+'"';
+
+            _this.finder(params, options).then((a) => {
+                resolve(a)
+            }).catch((err) => {
+                reject(err)
+            })
+
+        })
+
+    }
 }
 
 

@@ -54,7 +54,7 @@ describe("db testing", function () {
 
 
     });
-    
+
     it("create a document", function (done) {
         CouchManager.create({
             _id: 'ff'
@@ -127,51 +127,95 @@ describe("db testing", function () {
 
     it("create documents", function (done) {
 
-        CouchManager.create_more([{
-            _id: 'zz'
-        }, {
-                _id: 'ffs'
-            }, {
-                _id: 'ffg'
-            }]).then((d) => {
-                expect(d).to.be.ok;
-                expect(d).to.be.an("Array");
-                expect(d[0]).to.be.an("Object").to.have.property("_id");
-                expect(d[0]).to.be.an("Object").to.have.property("_rev");
-                done();
+        CouchManager.create_more([
+            {
+                "_id": "ssss"
+            },
+            {
+                "_id": "category_emergency",
+                "name": "emergency"
+            },
+            {
+                "_id": "category_hotels",
+                "name": "hotels"
+            },
+            {
+                "_id": "subcategory_emergency_hospital",
+                "name": "hospital",
+                "category": "emergency"
+            },
+            {
+                "_id": "subcategory_emergency_pharmacy",
+                "name": "pharmacy",
+                "category": "emergency"
+            }
+        ]).then((d) => {
+            expect(d).to.be.ok;
+            expect(d).to.be.an("Array");
+            expect(d[0]).to.be.an("Object").to.have.property("_id");
+            expect(d[0]).to.be.an("Object").to.have.property("_rev");
+            done();
 
-            }).catch((err) => {
-                done(Error(err))
-            })
+        }).catch((err) => {
+            done(Error(err))
+        })
 
 
     });
 
     it("update documents", function (done) {
-        CouchManager.update_more([{
-            _id: 'zz',
-            upp: 'up2'
-        }, {
-                _id: 'ffs',
-                upp: 'up2'
-            }]).then((d) => {
-                expect(d).to.be.ok;
-                expect(d).to.be.an("Array");
-                expect(d[0]).to.be.an("Object").to.have.property("_id");
-                expect(d[0]).to.be.an("Object").to.have.property("_rev");
-                done();
+        CouchManager.update_more([
+            {
+                "_id": "category_emergency",
+                "name": "emergency",
+                "up": "uppetwe"
+            },
+            {
+                "_id": "category_hotels",
+                "name": "hotels",
+                "up": "uppetwe"
+            }
+        ]).then((d) => {
+            expect(d).to.be.ok;
+            expect(d).to.be.an("Array");
 
-            }).catch((err) => {
-                done(Error(err))
-            })
+            expect(d[0]).to.be.an("Object");
+            expect(d[0]).to.have.property("_id");
+            expect(d[0]).to.have.property("_rev");
+            done();
+
+        }).catch((err) => {
+            done(Error(err))
+        })
 
 
 
     });
 
-    it("search between keys", function (done) {
-        CouchManager.betweenKeys('ffa','ffz').then((d) => {
+    
+ it("search between keys", function (done) {
+        CouchManager.betweenKeys('category_a', 'category_z').then((d) => {
             expect(d).to.be.ok;
+            expect(d).to.be.an("Array");
+            expect(d.length).to.be.eq(2);
+
+            expect(d[0]).to.be.ok;
+
+            expect(d[0]).to.be.an("Object");
+            expect(d[0]).to.have.property("_id");
+            expect(d[0]).to.have.property("_rev");
+
+            expect(d[1]).to.be.an("Object");
+            expect(d[1]).to.have.property("_id");
+            expect(d[1]).to.have.property("_rev");
+
+
+
+            expect(d[0]).to.have.property("_id").that.eq("category_emergency");
+            expect(d[1]).to.have.property("_id").that.eq("category_hotels");
+
+
+
             done();
 
         }).catch((err) => {
@@ -179,10 +223,10 @@ describe("db testing", function () {
         })
 
     });
-
+   
     it("remove documents", function (done) {
 
-        CouchManager.delete_more(['zz', 'ffs', 'ffg']).then((d) => {
+        CouchManager.delete_more(['category_emergency', 'category_hotels']).then((d) => {
             expect(d).to.be.ok;
 
             done();
