@@ -124,5 +124,72 @@ describe("db testing", function () {
 
     });
 
+    it("create documents", function (done) {
+
+        CouchManager.create_more([{
+            _id: 'zz'
+        }, {
+                _id: 'ffs'
+            }, {
+                _id: 'ffg'
+            }]).then((d) => {
+                expect(d).to.be.ok;
+                expect(d).to.be.an("Array");
+                expect(d[0]).to.be.an("Object").to.have.property("_id");
+                expect(d[0]).to.be.an("Object").to.have.property("_rev");
+                done();
+
+            }).catch((err) => {
+                done(Error(err))
+            })
+
+
+    });
+
+    it("update documents", function (done) {
+        CouchManager.update_more([{
+            _id: 'zz',
+            upp: 'up2'
+        }, {
+                _id: 'ffs',
+                upp: 'up2'
+            }]).then((d) => {
+                expect(d).to.be.ok;
+                expect(d).to.be.an("Array");
+                expect(d[0]).to.be.an("Object").to.have.property("_id");
+                expect(d[0]).to.be.an("Object").to.have.property("_rev");
+                done();
+
+            }).catch((err) => {
+                done(Error(err))
+            })
+
+
+
+    });
+
+    it("search between keys", function (done) {
+        CouchManager.betweenKeys('ffa','ffz').then((d) => {
+            expect(d).to.be.ok;
+            done();
+
+        }).catch((err) => {
+            done(Error(err))
+        })
+
+    });
+
+    it("remove documents", function (done) {
+
+        CouchManager.delete_more(['zz', 'ffs', 'ffg']).then((d) => {
+            expect(d).to.be.ok;
+
+            done();
+
+        }).catch((err) => {
+            done(Error(err))
+        })
+
+    });
 
 })

@@ -1,5 +1,6 @@
 import * as Promise from "bluebird";
 import * as superagent from "superagent";
+import * as async from "async";
 
 interface IAuth {
     user: string;
@@ -77,7 +78,7 @@ export default class couchNode {
                     if (err) {
                         reject(err);
                     } else {
-                        obj._rev=JSON.parse(res.text).rev;
+                        obj._rev = JSON.parse(res.text).rev;
                         resolve(obj);
                     }
                 })
@@ -86,8 +87,9 @@ export default class couchNode {
                     if (err) {
                         reject(err);
                     } else {
-                        obj._rev=JSON.parse(res.text).rev;
-                        resolve(obj);                    }
+                        obj._rev = JSON.parse(res.text).rev;
+                        resolve(obj);
+                    }
                 })
             }
 
@@ -97,6 +99,75 @@ export default class couchNode {
 
     }
 
+    create_more(obj: any) {
+        const results = [];
+        const _this = this;
+        return new Promise<any>((resolve, reject) => {
+
+            async.eachSeries(obj, (r, cb) => {
+                _this.create(r).then((result) => {
+                    results.push(result);
+                    cb()
+                }).catch((err) => {
+                    cb(err)
+                })
+
+            }, (err) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(results)
+
+                }
+            })
+        })
+    }
+    update_more(obj: any) {
+        const results = [];
+        const _this = this;
+        return new Promise<any>((resolve, reject) => {
+
+            async.eachSeries(obj, (r, cb) => {
+                _this.update(r).then((result) => {
+                    results.push(result);
+                    cb()
+                }).catch((err) => {
+                    cb(err)
+                })
+
+            }, (err) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(results)
+
+                }
+            })
+        })
+    }
+    delete_more(ids: string[]) {
+        const results = [];
+        const _this = this;
+        return new Promise<any>((resolve, reject) => {
+
+            async.eachSeries(ids, (r, cb) => {
+                _this.delete(r).then((result) => {
+                    results.push(result);
+                    cb()
+                }).catch((err) => {
+                    cb(err)
+                })
+
+            }, (err) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(results)
+
+                }
+            })
+        })
+    }
     update(obj): Promise<any> {
 
         const _this = this;
@@ -181,7 +252,7 @@ export default class couchNode {
                 reject('params must starts with?')
             } else {
                 if (params.split('include_docs').length < 2) {
-                    if (!options.notIncludeDocs) params = params + '&include_docs=true'
+                    if (!options || !options.notIncludeDocs) params = params + '&include_docs=true'
                 }
 
 
@@ -190,7 +261,13 @@ export default class couchNode {
                         if (err) {
                             reject(err);
                         } else {
-                            resolve(res.body);
+                            const ob = JSON.parse(res.text).rows;
+                            const objects = [];
+                            for (let i = 0; i < ob.length; i++) {
+                                objects.push(ob[i].doc)
+                            }
+
+                            resolve(objects);
                         }
                     })
                 } else {
@@ -198,7 +275,15 @@ export default class couchNode {
                         if (err) {
                             reject(err);
                         } else {
-                            resolve(res.body);
+
+                            const ob = JSON.parse(res.text).rows;
+                            const objects = [];
+                            for (let i = 0; i < ob.length; i++) {
+                                objects.push(ob[i].doc)
+                            }
+
+                            resolve(objects);
+
                         }
                     })
                 }
@@ -214,7 +299,7 @@ export default class couchNode {
 
             const params = '?startKey=' + start + '&endKey=' + stop;
 
-            _this.finder(params, options.notIncludeDocs).then((a) => {
+            _this.finder(params, options).then((a) => {
                 resolve(a)
             }).catch((err) => {
                 reject(err)
