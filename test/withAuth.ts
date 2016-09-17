@@ -5,7 +5,7 @@ const spawnPouchdbServer = require('spawn-pouchdb-server');
 
 const expect = chai.expect;
 
-const tmPort = 3434;
+const tmPort = 3435;
 
 const couchDBDatabase = "http://localhost:" + tmPort + "/" + new Date().getTime;
 
